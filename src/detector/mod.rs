@@ -16,8 +16,12 @@
 // You should have received a copy of the BSD 2-Clause License along with the software.
 // If not, see < https://opensource.org/licenses/BSD-2-Clause>.
 
-use std::cmp::Ordering::*;
-use std::{cmp, ptr};
+use core::cmp::Ordering::*;
+use core::{cmp, ptr};
+
+use ink_prelude::vec::*;
+use ink_prelude::vec;
+use num::Float;
 
 use crate::classifier::{Classifier, Score, SurfMlpBuffers};
 use crate::common::{resize_image, FaceInfo, ImageData, ImagePyramid, Rectangle, Seq};

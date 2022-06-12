@@ -20,7 +20,11 @@ use crate::common::{Rectangle, Seq};
 use crate::feat::FeatureMap;
 use crate::math;
 use crate::ImageData;
-use std::ptr;
+use core::ptr;
+
+use ink_prelude::vec::*;
+use ink_prelude::vec;
+use num::Float;
 
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;

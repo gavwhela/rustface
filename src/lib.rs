@@ -16,6 +16,8 @@
 // You should have received a copy of the BSD 2-Clause License along with the software.
 // If not, see < https://opensource.org/licenses/BSD-2-Clause>.
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
 mod classifier;
 mod common;
 mod detector;
@@ -26,16 +28,12 @@ pub mod model;
 pub use crate::common::FaceInfo;
 pub use crate::common::ImageData;
 pub use crate::common::Rectangle;
-pub use crate::model::{load_model, read_model, Model};
+pub use crate::model::{read_model, Model};
+
+use ink_prelude::boxed::*;
+use ink_prelude::vec::*;
 
 use crate::detector::FuStDetector;
-use std::io;
-
-/// Create a face detector, based on a file with model description.
-pub fn create_detector(path_to_model: &str) -> Result<Box<dyn Detector>, io::Error> {
-    let model = load_model(path_to_model)?;
-    Ok(create_detector_with_model(model))
-}
 
 /// Create a face detector, based on the provided model.
 pub fn create_detector_with_model(model: Model) -> Box<dyn Detector> {

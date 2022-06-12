@@ -14,9 +14,17 @@ exclude = [
 edition = "2021"
 
 [dependencies]
-num = "0.3"
-byteorder = "1.2.6"
+num = { version = "0.3", default-features = false, features = ["libm"] }
+byteorder = {version = "1.2.6", default-features = false }
 rayon = { version = "1.4.1", optional = true }
+ink_primitives = { version = "3.0.0-rc9", default-features = false }
+ink_metadata = { version = "3.0.0-rc9", default-features = false, features = ["derive"], optional = true }
+ink_env = { version = "3.0.0-rc9", default-features = false }
+ink_storage = { version = "3.0.0-rc9", default-features = false }
+ink_lang = { version = "3.0.0-rc9", default-features = false }
+ink_prelude = { version = "3.0.0-rc9", default-features = false }
+pink-extension = { version = "0.1.5", default-features = false }
+
 
 [dev-dependencies]
 image = "0.23"

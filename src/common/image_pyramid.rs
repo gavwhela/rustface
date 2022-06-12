@@ -16,7 +16,9 @@
 // You should have received a copy of the BSD 2-Clause License along with the software.
 // If not, see < https://opensource.org/licenses/BSD-2-Clause>.
 
-use std::cmp;
+use core::cmp;
+
+use ink_prelude::vec::*;
 
 #[derive(Debug)]
 pub struct ImageData<'a> {

@@ -20,6 +20,8 @@ use super::Score;
 use crate::feat::LabBoostedFeatureMap;
 use crate::Rectangle;
 
+use ink_prelude::vec::*;
+
 #[derive(Clone)]
 pub struct LabBoostedClassifier {
     features: Vec<(i32, i32)>,

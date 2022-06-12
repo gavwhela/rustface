@@ -20,7 +20,11 @@ use super::Score;
 use crate::feat::SurfMlpFeatureMap;
 use crate::math;
 use crate::Rectangle;
-use std::mem;
+use core::mem;
+
+use num::Float;
+
+use ink_prelude::vec::*;
 
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;

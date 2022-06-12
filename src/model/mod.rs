@@ -16,12 +16,10 @@
 // You should have received a copy of the BSD 2-Clause License along with the software.
 // If not, see < https://opensource.org/licenses/BSD-2-Clause>.
 
-use std::fs::File;
-use std::io;
-use std::io::BufReader;
+use ink_prelude::vec::*;
 
 use crate::classifier::{Classifier, ClassifierKind, LabBoostedClassifier, SurfMlpClassifier};
-use byteorder::{LittleEndian, ReadBytesExt};
+use byteorder::{ByteOrder, LittleEndian};
 
 #[derive(Clone)]
 pub struct Model {
@@ -58,61 +56,56 @@ impl Model {
     }
 }
 
-/// Load model from a file.
+/// Load model from vector
 #[inline]
-pub fn load_model(path: &str) -> Result<Model, io::Error> {
-    read_model(BufReader::new(File::open(path)?))
-}
-
-/// Load model from any stream or buffer
-#[inline]
-pub fn read_model<R: io::Read>(buf: R) -> Result<Model, io::Error> {
+pub fn read_model(buf: Vec<u8>) -> Model {
     ModelReader::new(buf).read()
 }
 
-struct ModelReader<R: io::Read> {
-    reader: R,
+struct ModelReader {
+    idx: usize,
+    bytes: Vec<u8>,
 }
 
-impl<R: io::Read> ModelReader<R> {
+impl ModelReader {
     #[inline]
-    fn new(reader: R) -> Self {
-        ModelReader { reader }
+    fn new(bytes: Vec<u8>) -> Self {
+        ModelReader { idx: 0, bytes: bytes }
     }
 
-    pub fn read(mut self) -> Result<Model, io::Error> {
-        let num_hierarchy = self.read_i32()? as usize;
+    pub fn read(mut self) -> Model {
+        let num_hierarchy = self.read_i32() as usize;
         let mut classifiers = Vec::new();
         let mut hierarchy_sizes = Vec::with_capacity(num_hierarchy);
         let mut num_stages = Vec::new();
         let mut wnd_src_id = Vec::new();
 
         for _ in 0..num_hierarchy {
-            let hierarchy_size = self.read_i32()?;
+            let hierarchy_size = self.read_i32();
             hierarchy_sizes.push(hierarchy_size);
 
             for _ in 0..hierarchy_size {
-                let num_stage = self.read_i32()?;
+                let num_stage = self.read_i32();
                 num_stages.push(num_stage);
 
                 for _ in 0..num_stage {
-                    let classifier_kind_id = self.read_i32()?;
+                    let classifier_kind_id = self.read_i32();
                     let classifier_kind = ClassifierKind::from(classifier_kind_id);
 
                     match classifier_kind {
                         Some(ref classifier_kind) => {
-                            classifiers.push(self.create_classifier(classifier_kind)?);
+                            classifiers.push(self.create_classifier(classifier_kind));
                         }
                         None => panic!("Unexpected classifier kind id: {}", classifier_kind_id),
                     };
                 }
 
-                let num_wnd_src = self.read_i32()?;
+                let num_wnd_src = self.read_i32();
                 let mut num_wnd_vec;
                 if num_wnd_src > 0 {
                     num_wnd_vec = Vec::with_capacity(num_wnd_src as usize);
                     for _ in 0..num_wnd_src {
-                        num_wnd_vec.push(self.read_i32()?);
+                        num_wnd_vec.push(self.read_i32());
                     }
                 } else {
                     num_wnd_vec = Vec::new();
@@ -121,28 +114,28 @@ impl<R: io::Read> ModelReader<R> {
             }
         }
 
-        Ok(Model {
+        Model {
             classifiers,
             wnd_src_id,
             hierarchy_sizes,
             num_stages,
-        })
+        }
     }
 
     fn create_classifier(
         &mut self,
         classifier_kind: &ClassifierKind,
-    ) -> Result<Classifier, io::Error> {
+    ) -> Classifier {
         match *classifier_kind {
             ClassifierKind::LabBoosted => {
                 let mut classifier = LabBoostedClassifier::new();
-                self.read_lab_boosted_model(&mut classifier)?;
-                Ok(Classifier::LabBoosted(classifier))
+                self.read_lab_boosted_model(&mut classifier);
+                Classifier::LabBoosted(classifier)
             }
             ClassifierKind::SurfMlp => {
                 let mut classifier = SurfMlpClassifier::new();
-                self.read_surf_mlp_model(&mut classifier)?;
-                Ok(Classifier::SurfMlp(classifier))
+                self.read_surf_mlp_model(&mut classifier);
+                Classifier::SurfMlp(classifier)
             }
         }
     }
@@ -150,55 +143,55 @@ impl<R: io::Read> ModelReader<R> {
     fn read_lab_boosted_model(
         &mut self,
         classifier: &mut LabBoostedClassifier,
-    ) -> Result<(), io::Error> {
-        let num_base_classifier = self.read_i32()?;
-        let num_bin = self.read_i32()?;
+    ) -> () {
+        let num_base_classifier = self.read_i32();
+        let num_bin = self.read_i32();
 
         for _ in 0..num_base_classifier {
-            let x = self.read_i32()?;
-            let y = self.read_i32()?;
+            let x = self.read_i32();
+            let y = self.read_i32();
             classifier.add_feature(x, y);
         }
 
         let mut thresh: Vec<f32> = Vec::with_capacity(num_base_classifier as usize);
         for _ in 0..num_base_classifier {
-            thresh.push(self.read_f32()?);
+            thresh.push(self.read_f32());
         }
 
         for i in 0..num_base_classifier {
             let mut weights: Vec<f32> = Vec::with_capacity(num_bin as usize + 1);
             for _ in 0..weights.capacity() {
-                weights.push(self.read_f32()?);
+                weights.push(self.read_f32());
             }
             classifier.add_base_classifier(weights, thresh[i as usize]);
         }
 
-        Ok(())
+        ()
     }
 
-    fn read_surf_mlp_model(&mut self, classifier: &mut SurfMlpClassifier) -> Result<(), io::Error> {
-        let num_layer = self.read_i32()?;
-        let num_feat = self.read_i32()?;
+    fn read_surf_mlp_model(&mut self, classifier: &mut SurfMlpClassifier) -> () {
+        let num_layer = self.read_i32();
+        let num_feat = self.read_i32();
 
         for _ in 0..num_feat {
-            classifier.add_feature_id(self.read_i32()?);
+            classifier.add_feature_id(self.read_i32());
         }
 
-        classifier.set_threshold(self.read_f32()?);
+        classifier.set_threshold(self.read_f32());
 
-        let mut input_dim = self.read_i32()?;
+        let mut input_dim = self.read_i32();
         for i in 1..num_layer {
-            let output_dim = self.read_i32()?;
+            let output_dim = self.read_i32();
 
             let weights_count = input_dim * output_dim;
             let mut weights: Vec<f32> = Vec::with_capacity(weights_count as usize);
             for _ in 0..weights_count {
-                weights.push(self.read_f32()?);
+                weights.push(self.read_f32());
             }
 
             let mut biases: Vec<f32> = Vec::with_capacity(output_dim as usize);
             for _ in 0..output_dim {
-                biases.push(self.read_f32()?);
+                biases.push(self.read_f32());
             }
 
             if i == num_layer - 1 {
@@ -215,16 +208,20 @@ impl<R: io::Read> ModelReader<R> {
             input_dim = output_dim;
         }
 
-        Ok(())
+        ()
     }
 
     #[inline]
-    fn read_i32(&mut self) -> Result<i32, io::Error> {
-        self.reader.read_i32::<LittleEndian>()
+    fn read_i32(&mut self) -> i32 {
+        let res = LittleEndian::read_i32(&self.bytes[self.idx..self.idx+4]);
+        self.idx += 4;
+        res
     }
 
     #[inline]
-    fn read_f32(&mut self) -> Result<f32, io::Error> {
-        self.reader.read_f32::<LittleEndian>()
+    fn read_f32(&mut self) -> f32 {
+        let res = LittleEndian::read_f32(&self.bytes[self.idx..self.idx+4]);
+        self.idx += 4;
+        res
     }
 }

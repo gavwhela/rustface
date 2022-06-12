@@ -18,7 +18,7 @@
 
 mod image_pyramid;
 
-use std::mem;
+use core::mem;
 
 pub use self::image_pyramid::{resize_image, ImageData, ImagePyramid};
 
