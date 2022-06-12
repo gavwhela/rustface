@@ -33,6 +33,9 @@ pub use crate::model::{read_model, Model};
 use ink_prelude::boxed::*;
 use ink_prelude::vec::*;
 
+use fixed::*;
+use fixed::types::*;
+
 use crate::detector::FuStDetector;
 
 /// Create a face detector, based on the provided model.
@@ -96,7 +99,7 @@ pub trait Detector {
     /// # Panics
     ///
     /// Panics if `scale_factor` is less than 0.01 or greater than 0.99
-    fn set_pyramid_scale_factor(&mut self, scale_factor: f32);
+    fn set_pyramid_scale_factor(&mut self, scale_factor: U8F24);
 
     /// Set the score threshold of detected faces.
     ///
@@ -110,5 +113,5 @@ pub trait Detector {
     /// # Panics
     ///
     /// Panics if `thresh` is less than or equal to 0.
-    fn set_score_thresh(&mut self, thresh: f64);
+    fn set_score_thresh(&mut self, thresh: U8F24);
 }

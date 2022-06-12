@@ -24,15 +24,15 @@ pub use self::image_pyramid::{resize_image, ImageData, ImagePyramid};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Rectangle {
-    x: i32,
-    y: i32,
+    x: u32,
+    y: u32,
     width: u32,
     height: u32,
 }
 
 impl Rectangle {
     #[inline]
-    pub fn new(x: i32, y: i32, width: u32, height: u32) -> Self {
+    pub fn new(x: u32, y: u32, width: u32, height: u32) -> Self {
         Rectangle {
             x,
             y,
@@ -42,22 +42,22 @@ impl Rectangle {
     }
 
     #[inline]
-    pub fn x(&self) -> i32 {
+    pub fn x(&self) -> u32 {
         self.x
     }
 
     #[inline]
-    pub fn set_x(&mut self, x: i32) {
+    pub fn set_x(&mut self, x: u32) {
         self.x = x;
     }
 
     #[inline]
-    pub fn y(&self) -> i32 {
+    pub fn y(&self) -> u32 {
         self.y
     }
 
     #[inline]
-    pub fn set_y(&mut self, y: i32) {
+    pub fn set_y(&mut self, y: u32) {
         self.y = y;
     }
 

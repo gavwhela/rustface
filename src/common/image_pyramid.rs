@@ -18,6 +18,10 @@
 
 use core::cmp;
 
+use fixed::*;
+use fixed::types::*;
+use fixed_macro::types::*;
+
 use ink_prelude::vec::*;
 
 #[derive(Debug)]
@@ -62,10 +66,10 @@ impl<'a> ImageData<'a> {
 }
 
 pub struct ImagePyramid {
-    max_scale: f32,
-    min_scale: f32,
-    scale_factor: f32,
-    scale_step: f32,
+    max_scale: U8F24,
+    min_scale: U8F24,
+    scale_factor: U8F24,
+    scale_step: U8F24,
     width1x: u32,
     height1x: u32,
     width_scaled: u32,
@@ -82,10 +86,10 @@ impl ImagePyramid {
         let img_buf_scaled_height: u32 = 2;
 
         ImagePyramid {
-            max_scale: 1.0,
-            min_scale: 1.0,
-            scale_factor: 1.0,
-            scale_step: 0.8,
+            max_scale: U8F24!(1.0),
+            min_scale: U8F24!(1.0),
+            scale_factor: U8F24!(1.0),
+            scale_step: U8F24!(0.8),
             width1x: 0,
             height1x: 0,
             width_scaled: 0,
@@ -100,18 +104,18 @@ impl ImagePyramid {
     }
 
     #[allow(dead_code)]
-    pub fn set_max_scale(&mut self, max_scale: f32) {
+    pub fn set_max_scale(&mut self, max_scale: U8F24) {
         self.max_scale = max_scale;
         self.scale_factor = max_scale;
         self.update_buf_scaled();
     }
 
     #[inline]
-    pub fn set_min_scale(&mut self, min_scale: f32) {
+    pub fn set_min_scale(&mut self, min_scale: U8F24) {
         self.min_scale = min_scale;
     }
 
-    pub fn set_scale_step(&mut self, scale_step: f32) {
+    pub fn set_scale_step(&mut self, scale_step: U8F24) {
         if scale_step > 0.0 && scale_step <= 1.0 {
             self.scale_step = scale_step;
         }

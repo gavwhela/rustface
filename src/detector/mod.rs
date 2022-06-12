@@ -21,7 +21,10 @@ use core::{cmp, ptr};
 
 use ink_prelude::vec::*;
 use ink_prelude::vec;
-use num::Float;
+
+use fixed::*;
+use fixed::types::*;
+use fixed_macro::types::*;
 
 use crate::classifier::{Classifier, Score, SurfMlpBuffers};
 use crate::common::{resize_image, FaceInfo, ImageData, ImagePyramid, Rectangle, Seq};
@@ -90,17 +93,14 @@ impl Detector for FuStDetector {
         self.max_face_size = max_face_size as i32;
     }
 
-    fn set_pyramid_scale_factor(&mut self, scale_factor: f32) {
-        if scale_factor < 0.01 || scale_factor > 0.99 {
+    fn set_pyramid_scale_factor(&mut self, scale_factor: U8F24) {
+        if scale_factor < U8F24!(0.01) || scale_factor > U8F24!(0.99) {
             panic!("Illegal scale factor: {}", scale_factor);
         }
         self.image_pyramid_scale_factor = scale_factor;
     }
 
-    fn set_score_thresh(&mut self, thresh: f64) {
-        if thresh <= 0.0 {
-            panic!("Illegal threshold: {}", thresh);
-        }
+    fn set_score_thresh(&mut self, thresh: U8F24) {
         self.cls_thresh = thresh;
     }
 }
@@ -120,8 +120,8 @@ pub struct FuStDetector {
     slide_wnd_step_y: u32,
     min_face_size: i32,
     max_face_size: i32,
-    cls_thresh: f64,
-    image_pyramid_scale_factor: f32,
+    cls_thresh: U8F24,
+    image_pyramid_scale_factor: U0F16,
 }
 
 struct FeatureMaps {
@@ -150,8 +150,8 @@ impl FuStDetector {
             slide_wnd_step_y,
             min_face_size: 20,
             max_face_size: -1,
-            cls_thresh: 3.85,
-            image_pyramid_scale_factor: 0.8,
+            cls_thresh: U8F24!(3.85),
+            image_pyramid_scale_factor: U0F16!(0.8),
         }
     }
 
@@ -182,10 +182,10 @@ impl FuStDetector {
     fn get_window_data(&mut self, img: &ImageData, wnd: &mut Rectangle) {
         let roi = wnd;
 
-        let roi_width = roi.width() as i32;
-        let roi_height = roi.height() as i32;
-        let img_width = img.width() as i32;
-        let img_height = img.height() as i32;
+        let roi_width = roi.width();
+        let roi_height = roi.height();
+        let img_width = img.width();
+        let img_height = img.height();
 
         let pad_right = cmp::max(roi.x() + roi_width - img_width, 0);
         let pad_left = if roi.x() >= 0 {

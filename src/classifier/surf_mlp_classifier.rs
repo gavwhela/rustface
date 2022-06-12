@@ -22,8 +22,6 @@ use crate::math;
 use crate::Rectangle;
 use core::mem;
 
-use num::Float;
-
 use ink_prelude::vec::*;
 
 #[cfg(feature = "rayon")]

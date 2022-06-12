@@ -26,7 +26,6 @@ use crate::feat::FeatureMap;
 use crate::math;
 
 use ink_prelude::vec::*;
-use num::Float;
 
 pub struct LabBoostedFeatureMap {
     width: u32,

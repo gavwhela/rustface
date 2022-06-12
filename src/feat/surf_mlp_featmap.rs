@@ -24,7 +24,6 @@ use core::ptr;
 
 use ink_prelude::vec::*;
 use ink_prelude::vec;
-use num::Float;
 
 #[cfg(feature = "rayon")]
 use rayon::prelude::*;
